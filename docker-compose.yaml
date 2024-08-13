@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs/:/root/logs/
+    network_mode: "host"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server /etc/redis.conf
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - ./config/redis/redis.conf:/etc/redis.conf
+
+  livekit:
+    image: livekit/livekit-server:v1.7
+    command: --config /etc/livekit.yaml
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - ./config/livekit/livekit.yaml:/etc/livekit.yaml
+
+  ingress:
+    image: livekit/ingress:v1.4
+    restart: unless-stopped
+    environment:
+      - INGRESS_CONFIG_FILE=/etc/ingress.yaml
+    network_mode: "host"
+    volumes:
+      - ./config/livekit/ingress.yaml:/etc/ingress.yaml
+
+  egress:
+    image: livekit/egress:v1.8
+    restart: unless-stopped
+    environment:
+      - EGRESS_CONFIG_FILE=/etc/egress.yaml
+    network_mode: "host"
+    volumes:
+      - ./config/livekit/egress.yaml:/etc/egress.yaml
